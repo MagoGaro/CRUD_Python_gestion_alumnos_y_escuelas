@@ -3,15 +3,18 @@ from tkinter import ttk
 from tkinter import messagebox as mb
 #from tkinter import scrolledtext as st
 from ttkthemes import themed_tk
-from PIL import ImageTk,Image
+#from PIL import ImageTk,Image
 import consultas
+
+id_escuela = ""
+id_locali = ""
+id_provi = ""
 
 class GestionAlumnos:
     def __init__(self):
-            
             self.consultitas=consultas.consultas_db()
             self.win = themed_tk.ThemedTk(theme="black")
-            self.win.title("Control de Gastos")
+            self.win.title("Control de Alumnos")
             self.win.geometry("1070x500")
             self.win.resizable(False,False)
             self.win.config(bg="gray")
@@ -31,7 +34,7 @@ class GestionAlumnos:
             
             self.win.mainloop()
     
-    
+# Pestaña Alumnos
     def gestionAlumno(self):
                 #global imagen
                 self.pagina0 = ttk.Frame(self.cuaderno1)
@@ -43,7 +46,7 @@ class GestionAlumnos:
                 self.labelegajo.config(fg="white",bg="slategray")
                 self.botonbuscar=ttk.Button(self.labelframe1, text="Buscar" ,command=self.buscarAlumno)
                 self.botonbuscar.grid(row=0,column=2,padx=5,pady=5)
-                self.botonlimpiar=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiar)
+                self.botonlimpiar=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiarAlumno)
                 self.botonlimpiar.grid(row=0,column=3,padx=5,pady=5)
                 self.n_legajo=StringVar()
                 self.entrylegajo=Entry(self.labelframe1,highlightcolor= "deepskyblue", highlightthickness=2, textvariable=self.n_legajo)
@@ -111,7 +114,9 @@ class GestionAlumnos:
                 self.botoneliminar=ttk.Button(self.labelframe1, text="Eliminar", command=self.borrarAlumno)
                 self.botoneliminar.grid(row=6,column=3,padx=10,pady=5)
     
-    def limpiar(self):
+# Funcionalidades Alumnos
+
+    def limpiarAlumno(self):
         self.nom_alumno.set("")
         self.ape_alumno.set("")
         self.prom_alumno.set("")
@@ -181,6 +186,8 @@ class GestionAlumnos:
             except:
                 mb.showerror("Error","Hubo un problema al procesar la solicitud")
 
+# Pestaña Escuelas
+
     def gestionEscuela(self):
                 #global imagen
                 self.pagina2 = ttk.Frame(self.cuaderno1)
@@ -195,9 +202,9 @@ class GestionAlumnos:
                 self.opcionesc2 = OptionMenu(self.labelframe1, self.escuela_nom, *escuelas2)
                 self.opcionesc2.grid(row=0, column=1,padx=20,pady=5, columnspan=10)
                 self.opcionesc2.config(width=50)
-                self.botonbuscar2=ttk.Button(self.labelframe1, text="Buscar" ,command=self.buscarAlumno)
+                self.botonbuscar2=ttk.Button(self.labelframe1, text="Buscar" ,command=self.buscarEscuela)
                 self.botonbuscar2.grid(row=0,column=11,padx=5,pady=5)
-                self.botonlimpiar2=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiar)
+                self.botonlimpiar2=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiarEscuela)
                 self.botonlimpiar2.grid(row=0,column=13,padx=5,pady=5)
                 self.esc_nombre2=Label(self.labelframe1, text="Nombre:")
                 self.esc_nombre2.grid(row=1,column=0,padx=20,pady=5,sticky="e")
@@ -219,13 +226,76 @@ class GestionAlumnos:
                 self.opcionesc3 = OptionMenu(self.labelframe1, self.esc_localidad2, *localidad2)
                 self.opcionesc3.grid(row=2, column=1,padx=20,pady=5, columnspan=10)
                 self.opcionesc3.config(width=50)
-                self.botonagregar2=ttk.Button(self.labelframe1, text="Agregar")
+                self.botonagregar2=ttk.Button(self.labelframe1, text="Agregar", command=self.agregarEscuela)
                 self.botonagregar2.grid(row=3,column=1,padx=10,pady=5, columnspan=2)
-                self.botonactualizar2=ttk.Button(self.labelframe1, text="Actualizar")
+                self.botonactualizar2=ttk.Button(self.labelframe1, text="Actualizar", command=self.actualizarEscuela)
                 self.botonactualizar2.grid(row=3,column=3,padx=10,pady=5, columnspan=2)
-                self.botoneliminar2=ttk.Button(self.labelframe1, text="Eliminar")
+                self.botoneliminar2=ttk.Button(self.labelframe1, text="Eliminar",command=self.borrarEscuela)
                 self.botoneliminar2.grid(row=3,column=5,padx=10,pady=5, columnspan=2)
+
+# Funcionalidades Escuela
+
+    def limpiarEscuela(self):
+        global id_escuela
+        self.nom_esc2.set("")
+        self.esc_capa2.set("")
+        self.escuela_nom.set("")
+        self.esc_localidad2.set("Seleccione una Opción")
+        self.opcionesc2.config(state=NORMAL)
+        id_escuela = ""
+
+    def buscarEscuela(self):
+        global id_escuela
+        
+        if self.escuela_nom.get() != "":
+            self.opcionesc2.config(state=DISABLED)
+            datos = self.escuela_nom.get()
+            respuesta = self.consultitas.buscar_escuela_nombre(datos)
+            self.nom_esc2.set(self.escuela_nom.get())
+            self.esc_localidad2.set(respuesta[0][1])
+            self.esc_capa2.set(respuesta[0][2])
+            id_escuela = respuesta[0][0]
+        else:
+            mb.showerror("Error","La escuela no puede quedar vacia")
+      
+    def agregarEscuela(self):
+        
+        if self.nom_esc2.get() != "":
+            datos = (self.nom_esc2.get(),self.esc_localidad2.get(),self.esc_capa2.get())
+            self.consultitas.alta_escuela(datos)
+            mb.showinfo("Informacion","Escuela cargada exitosamente")
+            self.limpiarEscuela()
+        else:
+            mb.showerror("Informacion","Es obligatorio rellenar todos los campos ")
+            
+            
+    def actualizarEscuela(self):
+        global id_escuela
+        try:
+            datos = (id_escuela,self.nom_esc2.get(),self.esc_capa2.get(),self.esc_localidad2.get())
+            self.consultitas.actualizar_escuela(datos)
+            mb.showinfo("Informacion","Escuela actualizada exitosamente")
+            
+        except:
+            mb.showerror("Error","Hubo un problema al procesar la solicitud")    
     
+    def borrarEscuela(self):
+            global id_escuela
+            
+            valor = mb.askquestion("Sesión", "¿Desea eliminar el registro?")
+            if valor == "yes":
+                try:
+                    datos = id_escuela
+                    int(datos)
+                    self.consultitas.borrar_escuela(datos)
+                    mb.showinfo("Informacion","Escuela eliminada exitosamente")
+                    self.limpiarEscuela()
+                    
+                except:
+                    mb.showerror("Error","Hubo un problema al procesar la solicitud")
+                    
+# Pestaña Localidades
+
     def gestionLocalidad(self):
                 #global imagen
                 self.pagina3 = ttk.Frame(self.cuaderno1)
@@ -240,9 +310,9 @@ class GestionAlumnos:
                 self.opcionesloca = OptionMenu(self.labelframe1, self.loca_nom, *loca2)
                 self.opcionesloca.grid(row=0, column=1,padx=20,pady=5, columnspan=10)
                 self.opcionesloca.config(width=50)
-                self.botonbuscar3=ttk.Button(self.labelframe1, text="Buscar")
+                self.botonbuscar3=ttk.Button(self.labelframe1, text="Buscar", command=self.buscarLocalidad)
                 self.botonbuscar3.grid(row=0,column=11,padx=5,pady=5)
-                self.botonlimpiar3=ttk.Button(self.labelframe1, text="Limpiar")
+                self.botonlimpiar3=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiarLocalidad)
                 self.botonlimpiar3.grid(row=0,column=13,padx=5,pady=5)
                 self.labenlocalidad2=Label(self.labelframe1, text="Nombre:")
                 self.labenlocalidad2.grid(row=1,column=0,padx=20,pady=5,sticky="e")
@@ -258,13 +328,73 @@ class GestionAlumnos:
                 self.opcionprov3= OptionMenu(self.labelframe1, self.provincia_loca, *provincias)
                 self.opcionprov3.grid(row=5, column=1,padx=20,pady=5, columnspan=10)
                 self.opcionprov3.config(width=50)
-                self.botonagregar3=ttk.Button(self.labelframe1, text="Agregar")
+                self.botonagregar3=ttk.Button(self.labelframe1, text="Agregar", command=self.agregarLocalidad)
                 self.botonagregar3.grid(row=6,column=1,padx=10,pady=5)
-                self.botonactualizar3=ttk.Button(self.labelframe1, text="Actualizar")
+                self.botonactualizar3=ttk.Button(self.labelframe1, text="Actualizar", command=self.actualizarLocalidad)
                 self.botonactualizar3.grid(row=6,column=2,padx=10,pady=5)
-                self.botoneliminar3=ttk.Button(self.labelframe1, text="Eliminar")
+                self.botoneliminar3=ttk.Button(self.labelframe1, text="Eliminar", command=self.borrarLocalidad)
                 self.botoneliminar3.grid(row=6,column=3,padx=10,pady=5)
+
+# Funcionalidades Localidades
+    def limpiarLocalidad(self):
+        global id_locali
+        self.loca_nom2.set("")
+        self.loca_nom.set("")
+        self.provincia_loca.set("Seleccione una Opción")
+        self.opcionesloca.config(state=NORMAL)
+        id_locali = ""
+        
+    def buscarLocalidad(self):
+        global id_locali
+        
+        if self.loca_nom.get() != "":
+            self.opcionesloca.config(state=DISABLED)
+            datos = self.loca_nom.get()
+            respuesta = self.consultitas.buscar_localidad_nombre(datos)
+            self.loca_nom2.set(self.loca_nom.get())
+            self.provincia_loca.set(respuesta[0][1])
+            id_locali = respuesta[0][0]
+        else:
+            mb.showerror("Error","La localidad no puede quedar vacia")
+            
+    def agregarLocalidad(self):
+        
+        if self.loca_nom2.get() != "":
+            datos = (self.loca_nom2.get(),self.provincia_loca.get())
+            self.consultitas.alta_localidad(datos)
+            mb.showinfo("Informacion","Localidad cargada exitosamente")
+            self.limpiarLocalidad()
+        else:
+            mb.showerror("Informacion","Es obligatorio rellenar todos los campos ")
+            
+            
+    def actualizarLocalidad(self):
+        global id_locali
+        try:
+            datos = (self.loca_nom2.get(),self.provincia_loca.get(),id_locali)
+            self.consultitas.actualizar_localidad(datos)
+            mb.showinfo("Informacion","Localidad actualizada exitosamente")
+            
+        except:
+            mb.showerror("Error","Hubo un problema al procesar la solicitud")    
     
+    def borrarLocalidad(self):
+            global id_locali
+            
+            valor = mb.askquestion("Sesión", "¿Desea eliminar el registro?")
+            if valor == "yes":
+                try:
+                    datos = id_locali
+                    int(datos)
+                    self.consultitas.borrar_localidad(datos)
+                    mb.showinfo("Informacion","Localidad eliminada exitosamente")
+                    self.limpiarLocalidad()
+                    
+                except:
+                    mb.showerror("Error","Hubo un problema al procesar la solicitud")
+                    
+# Pestaña Provincias
+
     def gestionProvincia(self):
                 #global imagen
                 self.pagina4 = ttk.Frame(self.cuaderno1)
@@ -279,9 +409,9 @@ class GestionAlumnos:
                 self.opcionprov = OptionMenu(self.labelframe1, self.provincia_n, *provincias4)
                 self.opcionprov.grid(row=0, column=1,padx=20,pady=5, columnspan=10)
                 self.opcionprov.config(width=50)
-                self.botonbuscar4=ttk.Button(self.labelframe1, text="Buscar")
+                self.botonbuscar4=ttk.Button(self.labelframe1, text="Buscar", command=self.buscarProvincia)
                 self.botonbuscar4.grid(row=0,column=11,padx=5,pady=5)
-                self.botonlimpiar4=ttk.Button(self.labelframe1, text="Limpiar")
+                self.botonlimpiar4=ttk.Button(self.labelframe1, text="Limpiar", command=self.limpiarProvincia)
                 self.botonlimpiar4.grid(row=0,column=13,padx=5,pady=5)
                 self.labenprovnom=Label(self.labelframe1, text="Nombre:")
                 self.labenprovnom.grid(row=1,column=0,padx=20,pady=5,sticky="e")
@@ -289,13 +419,73 @@ class GestionAlumnos:
                 self.provnom2=StringVar()
                 self.entrynom4=Entry(self.labelframe1,highlightcolor= "deepskyblue", highlightthickness=2, textvariable=self.provnom2)
                 self.entrynom4.grid(row=1,column=1,padx=10,pady=5, columnspan=2)
-                self.botonagregar4=ttk.Button(self.labelframe1, text="Agregar")
+                self.botonagregar4=ttk.Button(self.labelframe1, text="Agregar", command=self.agregarProvincia)
                 self.botonagregar4.grid(row=2,column=1,padx=10,pady=5)
-                self.botonactualizar4=ttk.Button(self.labelframe1, text="Actualizar")
+                self.botonactualizar4=ttk.Button(self.labelframe1, text="Actualizar", command=self.actualizarProvincia)
                 self.botonactualizar4.grid(row=2,column=2,padx=10,pady=5)
-                self.botoneliminar4=ttk.Button(self.labelframe1, text="Eliminar")
+                self.botoneliminar4=ttk.Button(self.labelframe1, text="Eliminar", command=self.borrarProvincia)
                 self.botoneliminar4.grid(row=2,column=3,padx=10,pady=5)
+
+# Funcionalidades Provincia
+
+    def limpiarProvincia(self):
+        global id_provi
+        self.provincia_n.set("")
+        self.provnom2.set("")
+        self.opcionprov.config(state=NORMAL)
+        id_provi = ""
+   
+        
+    def buscarProvincia(self):
+        global id_provi
+        
+        if self.provincia_n.get() != "":
+            self.opcionprov.config(state=DISABLED)
+            datos = self.provincia_n.get()
+            respuesta = self.consultitas.buscar_prov_nombre(datos)
+            self.provnom2.set(self.provincia_n.get())
+            id_provi = respuesta[0][0]
+        else:
+            mb.showerror("Error","La provincia no puede quedar vacia")
+            
+    def agregarProvincia(self):
+        
+        if self.provnom2.get() != "":
+            datos = (self.provnom2.get())
+            self.consultitas.alta_provincia(datos)
+            mb.showinfo("Informacion","Provincia cargada exitosamente")
+            self.limpiarProvincia()
+        else:
+            mb.showerror("Informacion","Es obligatorio rellenar todos los campos ")
+            
+            
+    def actualizarProvincia(self):
+        global id_provi
+        try:
+            datos = (id_provi,self.provnom2.get())
+            self.consultitas.actualizar_provincia(datos)
+            mb.showinfo("Informacion","Provincia actualizada exitosamente")
+            
+        except:
+            mb.showerror("Error","Hubo un problema al procesar la solicitud")    
     
+    def borrarProvincia(self):
+            global id_provi
+            
+            valor = mb.askquestion("Sesión", "¿Desea eliminar el registro?")
+            if valor == "yes":
+                try:
+                    datos = id_provi
+                    int(datos)
+                    self.consultitas.borrar_provincia(datos)
+                    mb.showinfo("Informacion","Provincia eliminada exitosamente")
+                    self.limpiarProvincia()
+                    
+                except:
+                    mb.showerror("Error","Hubo un problema al procesar la solicitud")
+   
+# Funciones Pie
+
     def licencia(self):
         self.win2 = themed_tk.ThemedTk(theme="black")
         self.win2.geometry("540x310")
@@ -327,7 +517,7 @@ class GestionAlumnos:
         self.win3.title("Acerca De")
         self.win3.config(bg="gray")
         self.win3.resizable(False,False)
-        Label(self.win3,background="gray", foreground="white", text= "Creado por \n Gabriel S. Roman\npara \n Codo a Codo 4.0 - Big Data\nNoviembre, 2023\nEmail: gabriel.magogaro@gmail.com", font=('Mistral 14 bold')).place(x=0,y=0)
+        Label(self.win3,background="gray", foreground="white", text= "V0.1 Desarrollado por \n Gabriel S. Roman\npara \n Codo a Codo 4.0 - Big Data\nNoviembre, 2023\nEmail: gabriel.magogaro@gmail.com", font=('Mistral 14 bold')).place(x=0,y=0)
                 
 if __name__ == '__main__':
     app=GestionAlumnos()
